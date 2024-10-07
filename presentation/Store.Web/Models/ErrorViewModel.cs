@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Store.Web.Models
 {
     public class ErrorViewModel
