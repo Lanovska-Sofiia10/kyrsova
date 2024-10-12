@@ -12,10 +12,10 @@ namespace Kyrsova.Tests
             var bookRepositoryStub = new Mock<IBookRepository>();
 
             bookRepositoryStub.Setup(x => x.GetAllByIsbn(It.IsAny<string>()))
-                              .Returns(new[] { new Book(1, "ISBN 12345-67890", "Author", "Title") });
+                              .Returns(new[] { new Book(1, "ISBN 12345-67890", "Author", "Title", "", 0m) });
 
             bookRepositoryStub.Setup(x => x.GetAllByTitleOrAuthor(It.IsAny<string>()))
-                              .Returns(new[] { new Book(2, "ISBN 09876-54321", "Author 2", "Title 2") });
+                              .Returns(new[] { new Book(2, "ISBN 09876-54321", "Author 2", "Title 2", "", 0m) });
 
             var bookService = new BookService(bookRepositoryStub.Object);
             var validIsbn = "ISBN 12345-67890";
@@ -33,10 +33,10 @@ namespace Kyrsova.Tests
             var bookRepositoryStub = new Mock<IBookRepository>();
 
             bookRepositoryStub.Setup(x => x.GetAllByIsbn(It.IsAny<string>()))
-                              .Returns(new[] { new Book(1, "ISBN 12345-67890", "Author", "Title") });
+                              .Returns(new[] { new Book(1, "ISBN 12345-67890", "Author", "Title", "", 0m) });
 
             bookRepositoryStub.Setup(x => x.GetAllByTitleOrAuthor(It.IsAny<string>()))
-                              .Returns(new[] { new Book(2, "ISBN 09876-54321", "Author 2", "Title 2") });
+                              .Returns(new[] { new Book(2, "ISBN 09876-54321", "Author 2", "Title 2", "", 0m) });
 
             var bookService = new BookService(bookRepositoryStub.Object);
             var authorQuery = "Author 2";
