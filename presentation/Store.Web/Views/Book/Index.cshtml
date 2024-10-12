@@ -1,0 +1,28 @@
+﻿@model Book
+
+@{
+	ViewData["Title"] = Model.Title;
+}
+
+<h1>@Model.Title</h1>
+<p><strong>@Model.Author</strong></p>
+<p>Ціна <strong>@Model.Price</strong></p>
+<div>
+    @Html.Raw(Model.Description)
+</div>
+<style>
+    p {
+        margin-bottom: 16px;
+    }
+
+    ul {
+        margin-bottom: 16px;
+        padding-left: 20px;
+    }
+
+    li {
+        margin-bottom: 8px;
+    }
+</style>
+
+

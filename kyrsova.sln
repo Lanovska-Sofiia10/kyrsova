@@ -15,7 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "presentation", "presentatio
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Store.Web", "presentation\Store.Web\Store.Web.csproj", "{19F06845-A9E6-49B1-8FD6-67B5A9020A1E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kyrsova.Tests", "domain\Kyrsova.Tests\Kyrsova.Tests.csproj", "{27215E14-F5E3-402F-99E1-6547A276B4CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kyrsova.Tests", "domain\Kyrsova.Tests\Kyrsova.Tests.csproj", "{27215E14-F5E3-402F-99E1-6547A276B4CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
