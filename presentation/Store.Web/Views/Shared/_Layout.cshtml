@@ -7,16 +7,43 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Store.Web.styles.css" asp-append-version="true" />
+    <style>
+        .cart-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-light bg-white">
+        <nav class="navbar navbar-expand-sm navbar-light bg-white position-relative">
             <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Інтернет-магазин книгарня</a>
-            <!-- Використання d-flex для вирівнювання в один рядок -->
             <form class="form-inline d-flex my-2 my-lg-0" action="@Url.Action("Index","Search")" method="get">
                 <input class="form-control mr-sm-2" type="search" name="query" placeholder="автор або назва" />
                 <button class="btn btn-outline-success my-sm-0 ml-2" type="submit">Шукати</button>
             </form>
+            <span class="navbar-text cart-info">
+                @{
+                    Cart cart;
+                    if (!Context.Session.TryGetCart(out cart))
+                        cart = new Cart();
+
+                    if (cart.Items.Count == 0)
+                    {
+                        @:Кошик пустий
+                    }
+                    else
+                    {
+                        // Підраховуємо загальну кількість екземплярів товарів
+                        var totalItemsCount = cart.Items.Sum(item => item.Value);  // item.Value містить кількість кожного товару
+
+                        @:Товарів @totalItemsCount на суму @cart.Amount
+                    }
+                }
+            </span>
+
+            </span>
         </nav>
     </header>
     <div class="container">
@@ -31,3 +58,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+

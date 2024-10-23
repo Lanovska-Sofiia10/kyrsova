@@ -69,7 +69,7 @@ namespace Store.Memory
 
 		public Book GetById(int id)
 		{
-			return books.Single(book => book.Id == id);
+            return books.Single(book => book.Id == id);
 		}
 	}
 }
