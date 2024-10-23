@@ -24,5 +24,11 @@
         margin-bottom: 8px;
     }
 </style>
+<form action="@Url.Action("Add", "Cart")" method="post">
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button class="btn btn-outline-success" type="submit">В кошика</button>
+</form>
+
+
 
 
