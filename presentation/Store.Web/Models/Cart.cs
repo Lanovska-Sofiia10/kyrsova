@@ -4,8 +4,24 @@ namespace Store.Web.Models
 {
     public class Cart
     {
-        public IDictionary<int, int> Items { get; set; } = new Dictionary<int, int>();
+        public int OrderId { get; set; }  // Зроблено set доступним для параметрless конструктора
 
-        public decimal Amount { get; set; }
-    }      
+        public int TotalCount { get; set; }
+
+        public decimal TotalPrice { get; set; }
+
+        public Cart()
+        {
+            OrderId = 0;
+            TotalCount = 0;
+            TotalPrice = 0m;
+        }
+
+        public Cart(int orderId)
+        {
+            OrderId = orderId;
+            TotalCount = 0;
+            TotalPrice = 0m;
+        }
+    }
 }

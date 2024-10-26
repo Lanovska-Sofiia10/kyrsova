@@ -26,23 +26,15 @@
             <span class="navbar-text cart-info">
                 @{
                     Cart cart;
-                    if (!Context.Session.TryGetCart(out cart))
-                        cart = new Cart();
-
-                    if (cart.Items.Count == 0)
+                    if (Context.Session.TryGetCart(out cart) && cart != null && cart.TotalCount > 0)
                     {
-                        @:Кошик пустий
+                        <a href="#">Товарів @cart.TotalCount на суму @cart.TotalPrice</a>
                     }
                     else
                     {
-                        // Підраховуємо загальну кількість екземплярів товарів
-                        var totalItemsCount = cart.Items.Sum(item => item.Value);  // item.Value містить кількість кожного товару
-
-                        @:Товарів @totalItemsCount на суму @cart.Amount
+                        <span>Кошик пустий</span>
                     }
                 }
-            </span>
-
             </span>
         </nav>
     </header>
