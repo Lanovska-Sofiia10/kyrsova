@@ -8,7 +8,9 @@ namespace Kyrsova.Tests
         [Fact]
         public void Order_WithNullItems_ThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => new Order(1, null));
+#pragma warning disable CS8625 // Литерал, равный NULL, не может быть преобразован в ссылочный тип, не допускающий значение NULL.
+            _ = Assert.Throws<ArgumentNullException>(() => new Order(1, items: null));
+#pragma warning restore CS8625 // Литерал, равный NULL, не может быть преобразован в ссылочный тип, не допускающий значение NULL.
         }
 
         [Fact]

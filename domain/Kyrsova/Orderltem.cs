@@ -6,20 +6,21 @@ using System.Threading.Tasks;
 
 namespace Kyrsova
 {
-    public class OrderItem 
+    public class OrderItem
     {
         public int BookId { get; }
-        public int Count { get; }
+        public int Count { get; set; } // Змінити на змінну
         public decimal Price { get; }
 
         public OrderItem(int bookId, int count, decimal price)
         {
             if (count <= 0)
-                throw new ArgumentOutOfRangeException("Count must be greater than zero.");
-            
+                throw new ArgumentOutOfRangeException(nameof(count), "Count must be greater than zero.");
+
             BookId = bookId;
             Count = count;
             Price = price;
         }
     }
+
 }

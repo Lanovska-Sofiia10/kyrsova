@@ -29,7 +29,7 @@ namespace Kyrsova
         {
             if (items == null)
                 throw new ArgumentNullException(nameof(items));
-
+            
             Id = id;
             this.items = new List<OrderItem>(items);
         }

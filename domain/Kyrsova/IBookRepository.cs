@@ -8,7 +8,8 @@ namespace Kyrsova
 {
 	public interface IBookRepository
 	{
-		Book[] GetAllByIsbn(string isbn);
+        Book[] GetAllByIds(IEnumerable<int> bookIds);
+        Book[] GetAllByIsbn(string isbn);
 
         Book[] GetAllByTitleOrAuthor(string titleOrAuthor);
 

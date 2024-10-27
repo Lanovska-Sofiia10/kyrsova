@@ -4,7 +4,7 @@ namespace Store.Web.Models
 {
     public class Cart
     {
-        public int OrderId { get; set; }  // Зроблено set доступним для параметрless конструктора
+        public int OrderId { get; }
 
         public int TotalCount { get; set; }
 
