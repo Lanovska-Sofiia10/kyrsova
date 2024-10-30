@@ -4,6 +4,7 @@ using System.Linq;
 using Kyrsova;
 using Store.Web.Models;
 using Store.Memory;
+using Microsoft.AspNetCore.Http;
 
 namespace Store.Web.Controllers
 {
@@ -62,33 +63,65 @@ namespace Store.Web.Controllers
             };
         }
 
+        public IActionResult AddItem(int bookId, int count)
+        {
+            (Order order, Cart cart) = GetOrCreateOrderAndCart();
+
+            var book = bookRepository.GetById(bookId);
+
+            order.AddOrUpdateItem(book, count);
+
+            SaveOrderAndCart(order, cart);
+
+            return RedirectToAction("Index", "Book", new { bookId });
+        }
+
         [HttpPost]
-        public IActionResult AddItem(int id)
+        public IActionResult UpdateItem(int bookId, int count)
+        {
+            (Order order, Cart cart) = GetOrCreateOrderAndCart();
+
+            order.GetItem(bookId).Count = count; ;
+            
+            SaveOrderAndCart(order, cart);
+
+            return RedirectToAction("Index", "Book", new { bookId });
+        }
+
+        private (Order order, Cart cart) GetOrCreateOrderAndCart()
         {
             Order order;
-            if (!HttpContext.Session.TryGetCart(out Cart cart) || cart == null)
-            {
-                order = orderRepository.Create();
-                cart = new Cart(order.Id);
-                HttpContext.Session.Set("Cart", cart);
-            }
-            else
+            if (HttpContext.Session.TryGetCart(out Cart cart))
             {
                 order = orderRepository.GetById(cart.OrderId);
             }
-
-            var book = bookRepository.GetById(id);
-            if (book != null)
+            else
             {
-                order.AddItem(book, 1);
-                orderRepository.Update(order);
-
-                cart.TotalCount = order.TotalCount;
-                cart.TotalPrice = order.TotalPrice;
-                HttpContext.Session.Set("Cart", cart);
+                order = orderRepository.Create();
+                cart = new Cart(order.Id);
             }
 
-            // Повертаємося на сторінку книги
+            return (order, cart);
+        }
+
+        private void SaveOrderAndCart(Order order, Cart cart)
+        {
+            orderRepository.Update(order);
+
+            cart.TotalCount = order.TotalCount;
+            cart.TotalPrice = order.TotalPrice;
+            
+            HttpContext.Session.Set("Cart", cart);
+        }
+
+        public IActionResult RemoveItem(int id)
+        {
+            (Order order, Cart cart) = GetOrCreateOrderAndCart();
+            
+            order.RemoveItem(id);
+
+            SaveOrderAndCart(order, cart);
+
             return RedirectToAction("Index", "Book", new { id });
         }
 
