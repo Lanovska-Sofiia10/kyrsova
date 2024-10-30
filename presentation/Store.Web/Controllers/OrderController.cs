@@ -77,16 +77,31 @@ namespace Store.Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdateItem(int bookId, int count)
+        public IActionResult UpdateItem(int bookId, int change)
         {
             (Order order, Cart cart) = GetOrCreateOrderAndCart();
 
-            order.GetItem(bookId).Count = count; ;
-            
+            var item = order.GetItem(bookId);
+            if (item != null)
+            {
+                int newCount = item.Count + change;
+
+                // Перевіряємо нове значення на допустимість
+                if (newCount > 0)
+                {
+                    item.Count = newCount;
+                }
+                else
+                {
+                    return BadRequest("Count must be greater than zero.");
+                }
+            }
+
             SaveOrderAndCart(order, cart);
 
-            return RedirectToAction("Index", "Book", new { bookId });
+            return RedirectToAction("Index", "Order");
         }
+
 
         private (Order order, Cart cart) GetOrCreateOrderAndCart()
         {
@@ -114,15 +129,15 @@ namespace Store.Web.Controllers
             HttpContext.Session.Set("Cart", cart);
         }
 
-        public IActionResult RemoveItem(int id)
+        public IActionResult RemoveItem(int bookId)
         {
             (Order order, Cart cart) = GetOrCreateOrderAndCart();
             
-            order.RemoveItem(id);
+            order.RemoveItem(bookId);
 
             SaveOrderAndCart(order, cart);
 
-            return RedirectToAction("Index", "Book", new { id });
+            return RedirectToAction("Index", "Order");
         }
 
     }
