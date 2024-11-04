@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Kyrsova.Messages;
+using Kyrsova.Contractors;
 
 namespace Store.Web.Controllers
 {
@@ -13,12 +15,14 @@ namespace Store.Web.Controllers
     {
         private readonly IBookRepository bookRepository;
         private readonly INotificationService notificationService;
+        private readonly IEnumerable<IDeliveryService> deliveryServices;
         private readonly IOrderRepository orderRepository;
 
-        public OrderController(IBookRepository bookRepository, IOrderRepository orderRepository, INotificationService notificationService)
+        public OrderController(IBookRepository bookRepository, IOrderRepository orderRepository, INotificationService notificationService, IEnumerable<IDeliveryService> deliveryServices)
         {
             this.bookRepository = bookRepository;
             this.orderRepository = orderRepository;
+            this.deliveryServices = deliveryServices;
             this.notificationService = notificationService;
         }
 
@@ -30,13 +34,11 @@ namespace Store.Web.Controllers
                 var order = orderRepository.Create();
                 cart = new Cart(order.Id);
                 HttpContext.Session.Set("Cart", cart);
-                OrderModel model = Map(order);
-                return View(model);
+                return View(Map(order));
             }
 
             var existingOrder = orderRepository.GetById(cart.OrderId) ?? orderRepository.Create();
-            OrderModel existingModel = Map(existingOrder);
-            return View(existingModel);
+            return View(Map(existingOrder));
         }
 
         private OrderModel Map(Order order)
@@ -67,13 +69,9 @@ namespace Store.Web.Controllers
         public IActionResult AddItem(int bookId, int count = 1)
         {
             (Order order, Cart cart) = GetOrCreateOrderAndCart();
-
             var book = bookRepository.GetById(bookId);
-
             order.AddOrUpdateItem(book, count);
-
             SaveOrderAndCart(order, cart);
-
             return RedirectToAction("Index", "Book", new { id = bookId });
         }
 
@@ -81,23 +79,17 @@ namespace Store.Web.Controllers
         public IActionResult UpdateItem(int bookId, int change)
         {
             (Order order, Cart cart) = GetOrCreateOrderAndCart();
-
             var item = order.GetItem(bookId);
-            if (item != null)
+            if (item != null && item.Count + change > 0)
             {
-                int newCount = item.Count + change;
-                if (newCount > 0)
-                {
-                    item.Count = newCount;
-                }
-                else
-                {
-                    return BadRequest("Count must be greater than zero.");
-                }
+                item.Count += change;
+            }
+            else
+            {
+                return BadRequest("Count must be greater than zero.");
             }
 
             SaveOrderAndCart(order, cart);
-
             return RedirectToAction("Index", "Order");
         }
 
@@ -129,11 +121,8 @@ namespace Store.Web.Controllers
         public IActionResult RemoveItem(int bookId)
         {
             (Order order, Cart cart) = GetOrCreateOrderAndCart();
-
             order.RemoveItem(bookId);
-
             SaveOrderAndCart(order, cart);
-
             return RedirectToAction("Index", "Order");
         }
 
@@ -151,8 +140,6 @@ namespace Store.Web.Controllers
 
             int code = 1111;
             HttpContext.Session.SetInt32(cellPhone, code);
-
-      
             Console.WriteLine($"Імітація відправки коду {code} на номер: {cellPhone}");
 
             return View("Confirmation", new ConfirmationModel
@@ -168,36 +155,59 @@ namespace Store.Web.Controllers
                 return false;
 
             cellPhone = cellPhone.Replace(" ", "").Replace("-", "");
-
             return Regex.IsMatch(cellPhone, @"^\+380\d{9}$");
         }
 
         [HttpPost]
-        public IActionResult StartDelivery(int id, string cellPhone, int code)
+        public IActionResult Confirmate(int id, string cellPhone, int code)
         {
             int? storedCode = HttpContext.Session.GetInt32(cellPhone);
-
-            if (storedCode == null)
+            if (storedCode == null || storedCode != code)
             {
                 return View("Confirmation", new ConfirmationModel
                 {
                     OrderId = id,
                     CellPhone = cellPhone,
-                    Errors = new Dictionary<string, string> { { "code", "Код отсутствует, повторите отправку." } }
+                    Errors = new Dictionary<string, string> { { "code", storedCode == null ? "Код отсутствует, повторите отправку." : "Неправильний код підтвердження" } }
                 });
             }
 
-            if (storedCode != code)
+            HttpContext.Session.Remove(cellPhone);
+            var model = new DeliveryModel
             {
-                return View("Confirmation", new ConfirmationModel
-                {
-                    OrderId = id,
-                    CellPhone = cellPhone,
-                    Errors = new Dictionary<string, string> { { "code", "Неправильний код підтвердження" } }
-                });
-            }
+                OrderId = id,
+                Methods = deliveryServices.ToDictionary(service => service.UniqueCode, service => service.Title)
+            };
 
-            return RedirectToAction("DeliveryStarted", new { id = id });
+            return View("DeliveryMethod", model);
         }
+
+        [HttpGet]
+        public ActionResult StartDelivery(int id, string uniqueCode)
+        {
+            var deliveryService = deliveryServices.Single(service => service.UniqueCode == uniqueCode);
+            var order = orderRepository.GetById(id);
+            var form = deliveryService.CreateForm(order);
+            return View("DeliveryStep", form);
+        }
+
+
+        [HttpPost]
+        public IActionResult NextDelivery(int id, string uniqueCode, int step, Dictionary<string, string> values)
+        {
+            var deliveryService = deliveryServices.Single(service => service.UniqueCode == uniqueCode);
+            var form = deliveryService.MoveNext(id, step, values);
+
+            // Перевіримо, чи є крок фінальним
+            if (form.IsFinal)
+            {
+                // Повертаємо підтвердження успішної доставки або інший фінальний вигляд
+                return RedirectToAction("DeliveryCompleted", new { orderId = id });
+            }
+
+            // В іншому випадку повертаємо форму для наступного кроку
+            return View("DeliveryStep", form);
+        }
+
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System;
 using Kyrsova;
+using Kyrsova.Contractors;
+using Kyrsova.Messages;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -34,6 +36,7 @@ namespace Store.Web
             services.AddSingleton<IBookRepository, BookRepository>();
             services.AddSingleton<IOrderRepository, OrderRepository>();
             services.AddSingleton<INotificationService, NotificationService>();
+            services.AddSingleton<IDeliveryService, PostamateDeliveryService>();
             services.AddSingleton<BookService>();
             services.AddControllersWithViews();
         }
@@ -65,6 +68,7 @@ namespace Store.Web
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
+
         }
     }
 }
