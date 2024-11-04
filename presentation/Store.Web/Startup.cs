@@ -33,7 +33,9 @@ namespace Store.Web
 
             services.AddSingleton<IBookRepository, BookRepository>();
             services.AddSingleton<IOrderRepository, OrderRepository>();
+            services.AddSingleton<INotificationService, NotificationService>();
             services.AddSingleton<BookService>();
+            services.AddControllersWithViews();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
