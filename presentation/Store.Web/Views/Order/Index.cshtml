@@ -16,6 +16,7 @@
                 <th scope="col">Назва</th>
                 <th scope="col">Кількість</th>
                 <th scope="col">Ціна</th>
+                <th scope="col"></th>
             </tr>
         </thead>
         <tbody>
@@ -25,8 +26,26 @@
                     <td class="text-right">@(i + 1)</td>
                     <td>@Model.Items[i]?.Author</td>
                     <td>@Model.Items[i]?.Title</td>
-                    <td class="text-right">@Model.Items[i]?.Count</td>
+                    <td class="text-right">
+                        <form action="@Url.Action("UpdateItem", "Order")" method="post" style="display:inline;">
+                            <input type="hidden" name="bookId" value="@Model.Items[i].BookId" />
+                            <input type="hidden" name="change" value="-1" />
+                            <button class="btn btn-sm btn-secondary" type="submit">-</button>
+                        </form>
+                        @Model.Items[i]?.Count
+                        <form action="@Url.Action("UpdateItem", "Order")" method="post" style="display:inline;">
+                            <input type="hidden" name="bookId" value="@Model.Items[i].BookId" />
+                            <input type="hidden" name="change" value="1" />
+                            <button class="btn btn-sm btn-secondary" type="submit">+</button>
+                        </form>
+                    </td>
                     <td class="text-right">@Model.Items[i]?.Price</td>
+                    <td class="text-center">
+                        <form action="@Url.Action("RemoveItem", "Order")" method="post">
+                            <input type="hidden" name="bookId" value="@Model.Items[i].BookId" />
+                            <button class="btn btn-danger" type="submit">Видалити</button>
+                        </form>
+                    </td>
                 </tr>
             }
         </tbody>
@@ -59,3 +78,4 @@ else
 {
     <p>Кошик пустий</p>
 }
+

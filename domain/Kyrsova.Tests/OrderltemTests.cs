@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Kyrsova.Tests
 {
-    public class OrderltemTest
+    public class OrderltemTests
     {
         [Fact]
         public void OrderItem_WithZeroCount_ThrowsArgumentOutOfRangeException()
@@ -36,6 +36,38 @@ namespace Kyrsova.Tests
             Assert.Equal(2, orderItem.Count);
             Assert.Equal(3m, orderItem.Price);
            
+        }
+
+        [Fact]
+        public void Count_WithNegativeValue_ThrowsArgumentOfRangeException()
+        {
+            var orderItem = new OrderItem(0, 5, 0m);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                orderItem.Count = -1;
+            });
+        }
+
+        [Fact]
+        public void Count_WithZeroValue_ThrowsArgumentOfRangeException()
+        {
+            var orderItem = new OrderItem(0, 5, 0m);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                orderItem.Count = 0;
+            });
+        }
+
+        [Fact]
+        public void Count_WithPositiveValue_SetsValus()
+        {
+            var orderItem = new OrderItem(0, 5, 0m);
+
+            orderItem.Count = 10;    
+
+            Assert.Equal(10, orderItem.Count);
         }
     }
 }
