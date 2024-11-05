@@ -1,6 +1,8 @@
 ﻿using Kyrsova;
 using Microsoft.AspNetCore.Mvc;
 using Store.Web.Models;
+using Store.Memory;
+using Microsoft.AspNetCore.Http;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -63,6 +65,19 @@ namespace Store.Web.Controllers
             };
         }
 
+        public IActionResult AddItem(int bookId, int count = 1)
+        {
+            (Order order, Cart cart) = GetOrCreateOrderAndCart();
+
+            var book = bookRepository.GetById(bookId);
+
+            order.AddOrUpdateItem(book, count);
+
+            SaveOrderAndCart(order, cart);
+
+            return RedirectToAction("Index", "Book", new { id = bookId });
+        }
+
         [HttpPost]
         public IActionResult AddItem(int bookId, int count = 1)
         {
@@ -103,6 +118,25 @@ namespace Store.Web.Controllers
 
         private (Order order, Cart cart) GetOrCreateOrderAndCart()
         {
+            (Order order, Cart cart) = GetOrCreateOrderAndCart();
+
+            var item = order.GetItem(bookId);
+            if (item != null)
+            {
+                int newCount = item.Count + change;
+
+                // Перевіряємо нове значення на допустимість
+                if (newCount > 0)
+                {
+                    item.Count = newCount;
+                }
+                else
+                {
+                    return BadRequest("Count must be greater than zero.");
+                }
+            }
+
+
             Order order;
             if (HttpContext.Session.TryGetCart(out Cart cart))
             {
@@ -130,6 +164,50 @@ namespace Store.Web.Controllers
         {
             (Order order, Cart cart) = GetOrCreateOrderAndCart();
 
+            order.RemoveItem(bookId);
+
+            SaveOrderAndCart(order, cart);
+
+            return RedirectToAction("Index", "Order");
+        }
+
+
+
+        private (Order order, Cart cart) GetOrCreateOrderAndCart()
+        {
+            Order order;
+            if (HttpContext.Session.TryGetCart(out Cart cart))
+
+        [HttpPost]
+        public IActionResult SendConfirmationCode(int id, string cellPhone)
+        {
+            var order = orderRepository.GetById(id);
+            var model = Map(order);
+
+            if (!IsValidCellPhone(cellPhone))
+            {
+                model.Errors["cellPhone"] = "Номер телефону не відповідає";
+                return View("Index", model);
+            }
+
+
+            return (order, cart);
+        }
+
+        private void SaveOrderAndCart(Order order, Cart cart)
+        {
+            orderRepository.Update(order);
+
+            cart.TotalCount = order.TotalCount;
+            cart.TotalPrice = order.TotalPrice;
+            
+            HttpContext.Session.Set("Cart", cart);
+        }
+
+        public IActionResult RemoveItem(int bookId)
+        {
+            (Order order, Cart cart) = GetOrCreateOrderAndCart();
+            
             order.RemoveItem(bookId);
 
             SaveOrderAndCart(order, cart);
@@ -171,6 +249,31 @@ namespace Store.Web.Controllers
 
             return Regex.IsMatch(cellPhone, @"^\+380\d{9}$");
         }
+
+
+            int code = 1111;
+            HttpContext.Session.SetInt32(cellPhone, code);
+
+      
+            Console.WriteLine($"Імітація відправки коду {code} на номер: {cellPhone}");
+
+            return View("Confirmation", new ConfirmationModel
+            {
+                OrderId = id,
+                CellPhone = cellPhone
+            });
+        }
+
+        private bool IsValidCellPhone(string cellPhone)
+        {
+            if (string.IsNullOrWhiteSpace(cellPhone))
+                return false;
+
+            cellPhone = cellPhone.Replace(" ", "").Replace("-", "");
+
+            return Regex.IsMatch(cellPhone, @"^\+380\d{9}$");
+        }
+
 
         [HttpPost]
         public IActionResult StartDelivery(int id, string cellPhone, int code)
