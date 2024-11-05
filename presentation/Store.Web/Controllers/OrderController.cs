@@ -182,7 +182,7 @@ namespace Store.Web.Controllers
             return View("DeliveryMethod", model);
         }
 
-        [HttpGet]
+        [HttpPost]
         public ActionResult StartDelivery(int id, string uniqueCode)
         {
             var deliveryService = deliveryServices.Single(service => service.UniqueCode == uniqueCode);
@@ -198,14 +198,11 @@ namespace Store.Web.Controllers
             var deliveryService = deliveryServices.Single(service => service.UniqueCode == uniqueCode);
             var form = deliveryService.MoveNext(id, step, values);
 
-            // Перевіримо, чи є крок фінальним
             if (form.IsFinal)
             {
-                // Повертаємо підтвердження успішної доставки або інший фінальний вигляд
                 return RedirectToAction("DeliveryCompleted", new { orderId = id });
             }
 
-            // В іншому випадку повертаємо форму для наступного кроку
             return View("DeliveryStep", form);
         }
 
