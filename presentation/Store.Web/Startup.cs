@@ -8,7 +8,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Store.LiqPay;
 using Store.Memory;
+using Store.Web.Contractors;
 
 namespace Store.Web
 {
@@ -39,6 +41,8 @@ namespace Store.Web
             services.AddSingleton<INotificationService, NotificationService>();
             services.AddSingleton<IDeliveryService, DeliveryService>();
             services.TryAddSingleton<IPaymentService, CashPlaymentService>();
+            services.AddSingleton<IPaymentService, LiqPayPaymentService>();
+            services.AddSingleton<IWebContractorService, LiqPayPaymentService>();
             services.AddSingleton<BookService>();
             services.AddControllersWithViews();
         }
@@ -69,6 +73,12 @@ namespace Store.Web
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+                endpoints.MapAreaControllerRoute(
+                    name: "liqpay",
+                    areaName: "LiqPay",
+                    pattern: "LiqPay/{controller=Home}/{action=Index}/{id?}"
+                    );
             });
 
         }
