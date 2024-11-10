@@ -76,7 +76,12 @@ namespace Store.Web.Controllers
         {
             (Order order, Cart cart) = GetOrCreateOrderAndCart();
             var book = bookRepository.GetById(bookId);
-            order.AddOrUpdateItem(book, count);
+
+            if (order.Items.TryGet(bookId, out OrderItem orderItem))
+                orderItem.Count += count;
+            else
+                order.Items.Add(bookId, book.Price, count);
+
             SaveOrderAndCart(order, cart);
             return RedirectToAction("Index", "Book", new { id = bookId });
         }
@@ -85,19 +90,21 @@ namespace Store.Web.Controllers
         public IActionResult UpdateItem(int bookId, int change)
         {
             (Order order, Cart cart) = GetOrCreateOrderAndCart();
-            var item = order.GetItem(bookId);
+            var item = order.Items.Get(bookId);
+
             if (item != null && item.Count + change > 0)
             {
                 item.Count += change;
             }
             else
             {
-                return BadRequest("Count must be greater than zero.");
+                return BadRequest("Кількість товару повинна бути більшою за нуль.");
             }
 
             SaveOrderAndCart(order, cart);
             return RedirectToAction("Index", "Order");
         }
+
 
         private (Order order, Cart cart) GetOrCreateOrderAndCart()
         {
@@ -128,7 +135,7 @@ namespace Store.Web.Controllers
         public IActionResult RemoveItem(int bookId)
         {
             (Order order, Cart cart) = GetOrCreateOrderAndCart();
-            order.RemoveItem(bookId);
+            order.Items.Remove(bookId);
             SaveOrderAndCart(order, cart);
             return RedirectToAction("Index", "Order");
         }

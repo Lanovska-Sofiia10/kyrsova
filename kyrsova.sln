@@ -21,7 +21,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Store.Web.Contractors", "pr
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "plugins", "plugins", "{F7455198-4666-4B9B-BAA2-1EB0B5066339}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Store.LiqPay", "plugins\Store.LiqPay\Store.LiqPay.csproj", "{CF34F4DC-BC74-4AC2-8239-6C905406A798}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Store.LiqPay", "plugins\Store.LiqPay\Store.LiqPay.csproj", "{CF34F4DC-BC74-4AC2-8239-6C905406A798}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "application", "application", "{97A4683A-D586-494A-AC43-3623DB8F4FA8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Store.Web.App", "application\Store.Web.App\Store.Web.App.csproj", "{245E868B-8F5E-4679-A85B-6ADED6BC9051}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +57,10 @@ Global
 		{CF34F4DC-BC74-4AC2-8239-6C905406A798}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CF34F4DC-BC74-4AC2-8239-6C905406A798}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CF34F4DC-BC74-4AC2-8239-6C905406A798}.Release|Any CPU.Build.0 = Release|Any CPU
+		{245E868B-8F5E-4679-A85B-6ADED6BC9051}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{245E868B-8F5E-4679-A85B-6ADED6BC9051}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{245E868B-8F5E-4679-A85B-6ADED6BC9051}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{245E868B-8F5E-4679-A85B-6ADED6BC9051}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,6 +72,7 @@ Global
 		{27215E14-F5E3-402F-99E1-6547A276B4CC} = {38883F08-EE5F-4B11-9A3C-97EF719DE12D}
 		{721CFB18-0E3B-43A7-A72A-7D432F2E9DBE} = {B27AF595-EA0A-47AF-B31E-6E5C375E5142}
 		{CF34F4DC-BC74-4AC2-8239-6C905406A798} = {F7455198-4666-4B9B-BAA2-1EB0B5066339}
+		{245E868B-8F5E-4679-A85B-6ADED6BC9051} = {97A4683A-D586-494A-AC43-3623DB8F4FA8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8AF92D71-8B40-45EA-9EA5-9F5D0D1D5DDB}
