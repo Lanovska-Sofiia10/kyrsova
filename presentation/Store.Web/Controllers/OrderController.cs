@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Kyrsova.Messages;
+using Kyrsova.Contractors;
 
 namespace Store.Web.Controllers
 {
@@ -15,13 +17,21 @@ namespace Store.Web.Controllers
     {
         private readonly IBookRepository bookRepository;
         private readonly INotificationService notificationService;
+        private readonly IEnumerable<IDeliveryService> deliveryServices;
+        private readonly IEnumerable<IPaymentService> paymentServices;
         private readonly IOrderRepository orderRepository;
 
-        public OrderController(IBookRepository bookRepository, IOrderRepository orderRepository, INotificationService notificationService)
+        public OrderController(IBookRepository bookRepository,
+                               IOrderRepository orderRepository,
+                               INotificationService notificationService,
+                               IEnumerable<IDeliveryService> deliveryServices,
+                               IEnumerable<IPaymentService> paymentServices)
         {
-            this.bookRepository = bookRepository;
-            this.orderRepository = orderRepository;
-            this.notificationService = notificationService;
+            this.bookRepository = bookRepository ?? throw new ArgumentNullException(nameof(bookRepository));
+            this.orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
+            this.deliveryServices = deliveryServices ?? throw new ArgumentNullException(nameof(deliveryServices));
+            this.paymentServices = paymentServices ?? throw new ArgumentNullException(nameof(paymentServices));
+            this.notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
 
         [HttpGet]
@@ -32,13 +42,11 @@ namespace Store.Web.Controllers
                 var order = orderRepository.Create();
                 cart = new Cart(order.Id);
                 HttpContext.Session.Set("Cart", cart);
-                OrderModel model = Map(order);
-                return View(model);
+                return View(Map(order));
             }
 
             var existingOrder = orderRepository.GetById(cart.OrderId) ?? orderRepository.Create();
-            OrderModel existingModel = Map(existingOrder);
-            return View(existingModel);
+            return View(Map(existingOrder));
         }
 
         private OrderModel Map(Order order)
@@ -82,13 +90,9 @@ namespace Store.Web.Controllers
         public IActionResult AddItem(int bookId, int count = 1)
         {
             (Order order, Cart cart) = GetOrCreateOrderAndCart();
-
             var book = bookRepository.GetById(bookId);
-
             order.AddOrUpdateItem(book, count);
-
             SaveOrderAndCart(order, cart);
-
             return RedirectToAction("Index", "Book", new { id = bookId });
         }
 
@@ -96,23 +100,17 @@ namespace Store.Web.Controllers
         public IActionResult UpdateItem(int bookId, int change)
         {
             (Order order, Cart cart) = GetOrCreateOrderAndCart();
-
             var item = order.GetItem(bookId);
-            if (item != null)
+            if (item != null && item.Count + change > 0)
             {
-                int newCount = item.Count + change;
-                if (newCount > 0)
-                {
-                    item.Count = newCount;
-                }
-                else
-                {
-                    return BadRequest("Count must be greater than zero.");
-                }
+                item.Count += change;
+            }
+            else
+            {
+                return BadRequest("Count must be greater than zero.");
             }
 
             SaveOrderAndCart(order, cart);
-
             return RedirectToAction("Index", "Order");
         }
 
@@ -146,6 +144,7 @@ namespace Store.Web.Controllers
             {
                 order = orderRepository.Create();
                 cart = new Cart(order.Id);
+                HttpContext.Session.Set("Cart", cart);
             }
 
             return (order, cart);
@@ -163,11 +162,8 @@ namespace Store.Web.Controllers
         public IActionResult RemoveItem(int bookId)
         {
             (Order order, Cart cart) = GetOrCreateOrderAndCart();
-
             order.RemoveItem(bookId);
-
             SaveOrderAndCart(order, cart);
-
             return RedirectToAction("Index", "Order");
         }
 
@@ -229,8 +225,6 @@ namespace Store.Web.Controllers
 
             int code = 1111;
             HttpContext.Session.SetInt32(cellPhone, code);
-
-      
             Console.WriteLine($"Імітація відправки коду {code} на номер: {cellPhone}");
 
             return View("Confirmation", new ConfirmationModel
@@ -246,7 +240,6 @@ namespace Store.Web.Controllers
                 return false;
 
             cellPhone = cellPhone.Replace(" ", "").Replace("-", "");
-
             return Regex.IsMatch(cellPhone, @"^\+380\d{9}$");
         }
 
@@ -276,31 +269,107 @@ namespace Store.Web.Controllers
 
 
         [HttpPost]
-        public IActionResult StartDelivery(int id, string cellPhone, int code)
+        public IActionResult Confirmate(int id, string cellPhone, int code)
         {
             int? storedCode = HttpContext.Session.GetInt32(cellPhone);
-
-            if (storedCode == null)
+            if (storedCode == null || storedCode != code)
             {
                 return View("Confirmation", new ConfirmationModel
                 {
                     OrderId = id,
                     CellPhone = cellPhone,
-                    Errors = new Dictionary<string, string> { { "code", "Код отсутствует, повторите отправку." } }
+                    Errors = new Dictionary<string, string> { { "code", storedCode == null ? "Код отсутствует, повторите отправку." : "Неправильний код підтвердження" } }
                 });
             }
 
-            if (storedCode != code)
+            var order = orderRepository.GetById(id);
+            order.CellPhone = cellPhone;
+            orderRepository.Update(order);
+
+            HttpContext.Session.Remove(cellPhone);
+
+            var model = new DeliveryModel
             {
-                return View("Confirmation", new ConfirmationModel
+                OrderId = id,
+                Methods = deliveryServices.ToDictionary(service => service.UniqueCode,
+                                                        service => service.Title)
+            };
+
+            return View("DeliveryMethod", model);
+        }
+
+        [HttpPost]
+        public ActionResult StartDelivery(int id, string uniqueCode)
+        {
+            var deliveryService = deliveryServices.SingleOrDefault(service => service.UniqueCode == uniqueCode);
+            if (deliveryService == null)
+                return BadRequest("Invalid delivery service.");
+
+            var order = orderRepository.GetById(id);
+            var form = deliveryService.CreateForm(order);
+            return View("DeliveryStep", form);
+        }
+
+        [HttpPost]
+        public IActionResult NextDelivery(int id, string uniqueCode, int step, Dictionary<string, string> values)
+        {
+            var deliveryService = deliveryServices.SingleOrDefault(service => service.UniqueCode == uniqueCode);
+            if (deliveryService == null)
+                return BadRequest("Invalid delivery service.");
+
+            var form = deliveryService.MoveNextForm(id, step, values);
+
+            if (form.IsFinal)
+            {
+                var order = orderRepository.GetById(id);
+                order.Delivery = deliveryService.GetDelivery(form);
+                orderRepository.Update(order);
+
+                var model = new DeliveryModel
                 {
                     OrderId = id,
-                    CellPhone = cellPhone,
-                    Errors = new Dictionary<string, string> { { "code", "Неправильний код підтвердження" } }
-                });
+                    Methods = paymentServices.ToDictionary(service => service.UniqueCode,
+                                                        service => service.Title)
+                };
+
+                return View("PaymentMethod", model);
             }
 
-            return RedirectToAction("DeliveryStarted", new { id = id });
+            return View("DeliveryStep", form);
+        }
+
+        [HttpPost]
+        public ActionResult StartPayment(int id, string uniqueCode)
+        {
+            var paymentService = paymentServices.SingleOrDefault(service => service.UniqueCode == uniqueCode);
+            if (paymentService == null)
+                return BadRequest("Invalid delivery service.");
+
+            var order = orderRepository.GetById(id);
+            var form = paymentService.CreateForm(order);
+            return View("PaymentStep", form);
+        }
+
+        [HttpPost]
+        public IActionResult NextPayment(int id, string uniqueCode, int step, Dictionary<string, string> values)
+        {
+            var paymentService = paymentServices.SingleOrDefault(service => service.UniqueCode == uniqueCode);
+            if (paymentService == null)
+                return BadRequest("Invalid delivery service.");
+
+            var form = paymentService.MoveNextForm(id, step, values);
+
+            if (form.IsFinal)
+            {
+                var order = orderRepository.GetById(id);
+                order.Payment = paymentService.GetPayment(form);
+                orderRepository.Update(order);
+
+                return View("Finish");
+            }
+
+            return View("PaymentStep", form);
         }
     }
 }
+
