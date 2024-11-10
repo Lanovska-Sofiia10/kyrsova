@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Kyrsova
+namespace Kyrsova.Messages
 {
     public interface INotificationService
     {

@@ -2,7 +2,7 @@
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;
 using Twilio.Types;
-using Kyrsova;
+using Kyrsova.Messages;
 
 public class NotificationService : INotificationService
 {
