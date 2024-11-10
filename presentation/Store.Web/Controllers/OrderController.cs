@@ -16,14 +16,20 @@ namespace Store.Web.Controllers
         private readonly IBookRepository bookRepository;
         private readonly INotificationService notificationService;
         private readonly IEnumerable<IDeliveryService> deliveryServices;
+        private readonly IEnumerable<IPaymentService> paymentServices;
         private readonly IOrderRepository orderRepository;
 
-        public OrderController(IBookRepository bookRepository, IOrderRepository orderRepository, INotificationService notificationService, IEnumerable<IDeliveryService> deliveryServices)
+        public OrderController(IBookRepository bookRepository,
+                               IOrderRepository orderRepository,
+                               INotificationService notificationService,
+                               IEnumerable<IDeliveryService> deliveryServices,
+                               IEnumerable<IPaymentService> paymentServices)
         {
-            this.bookRepository = bookRepository;
-            this.orderRepository = orderRepository;
-            this.deliveryServices = deliveryServices;
-            this.notificationService = notificationService;
+            this.bookRepository = bookRepository ?? throw new ArgumentNullException(nameof(bookRepository));
+            this.orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
+            this.deliveryServices = deliveryServices ?? throw new ArgumentNullException(nameof(deliveryServices));
+            this.paymentServices = paymentServices ?? throw new ArgumentNullException(nameof(paymentServices));
+            this.notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
 
         [HttpGet]
@@ -104,6 +110,7 @@ namespace Store.Web.Controllers
             {
                 order = orderRepository.Create();
                 cart = new Cart(order.Id);
+                HttpContext.Session.Set("Cart", cart);
             }
 
             return (order, cart);
@@ -172,11 +179,17 @@ namespace Store.Web.Controllers
                 });
             }
 
+            var order = orderRepository.GetById(id);
+            order.CellPhone = cellPhone;
+            orderRepository.Update(order);
+
             HttpContext.Session.Remove(cellPhone);
+
             var model = new DeliveryModel
             {
                 OrderId = id,
-                Methods = deliveryServices.ToDictionary(service => service.UniqueCode, service => service.Title)
+                Methods = deliveryServices.ToDictionary(service => service.UniqueCode,
+                                                        service => service.Title)
             };
 
             return View("DeliveryMethod", model);
@@ -185,26 +198,75 @@ namespace Store.Web.Controllers
         [HttpPost]
         public ActionResult StartDelivery(int id, string uniqueCode)
         {
-            var deliveryService = deliveryServices.Single(service => service.UniqueCode == uniqueCode);
+            var deliveryService = deliveryServices.SingleOrDefault(service => service.UniqueCode == uniqueCode);
+            if (deliveryService == null)
+                return BadRequest("Invalid delivery service.");
+
             var order = orderRepository.GetById(id);
             var form = deliveryService.CreateForm(order);
             return View("DeliveryStep", form);
         }
 
-
         [HttpPost]
         public IActionResult NextDelivery(int id, string uniqueCode, int step, Dictionary<string, string> values)
         {
-            var deliveryService = deliveryServices.Single(service => service.UniqueCode == uniqueCode);
-            var form = deliveryService.MoveNext(id, step, values);
+            var deliveryService = deliveryServices.SingleOrDefault(service => service.UniqueCode == uniqueCode);
+            if (deliveryService == null)
+                return BadRequest("Invalid delivery service.");
+
+            var form = deliveryService.MoveNextForm(id, step, values);
 
             if (form.IsFinal)
             {
-                return RedirectToAction("DeliveryCompleted", new { orderId = id });
+                var order = orderRepository.GetById(id);
+                order.Delivery = deliveryService.GetDelivery(form);
+                orderRepository.Update(order);
+
+                var model = new DeliveryModel
+                {
+                    OrderId = id,
+                    Methods = paymentServices.ToDictionary(service => service.UniqueCode,
+                                                        service => service.Title)
+                };
+
+                return View("PaymentMethod", model);
             }
 
             return View("DeliveryStep", form);
         }
 
+        [HttpPost]
+        public ActionResult StartPayment(int id, string uniqueCode)
+        {
+            var paymentService = paymentServices.SingleOrDefault(service => service.UniqueCode == uniqueCode);
+            if (paymentService == null)
+                return BadRequest("Invalid delivery service.");
+
+            var order = orderRepository.GetById(id);
+            var form = paymentService.CreateForm(order);
+            return View("PaymentStep", form);
+        }
+
+        [HttpPost]
+        public IActionResult NextPayment(int id, string uniqueCode, int step, Dictionary<string, string> values)
+        {
+            var paymentService = paymentServices.SingleOrDefault(service => service.UniqueCode == uniqueCode);
+            if (paymentService == null)
+                return BadRequest("Invalid delivery service.");
+
+            var form = paymentService.MoveNextForm(id, step, values);
+
+            if (form.IsFinal)
+            {
+                var order = orderRepository.GetById(id);
+                order.Payment = paymentService.GetPayment(form);
+                orderRepository.Update(order);
+
+                return View("Finish");
+            }
+
+            return View("PaymentStep", form);
+        }
     }
 }
+

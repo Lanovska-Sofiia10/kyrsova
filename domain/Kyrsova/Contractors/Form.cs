@@ -19,19 +19,19 @@ namespace Kyrsova.Contractors
         public Form(string uniqueCode, int orderId, int step, bool isFinal, IEnumerable<Field> fields)
         {
             if (string.IsNullOrWhiteSpace(uniqueCode))
-                throw new ArgumentException(nameof(uniqueCode));
+                throw new ArgumentException("Unique code cannot be null or whitespace.", nameof(uniqueCode));
 
-            if (step < 1)
-                throw new ArgumentOutOfRangeException(nameof(step));
+            if (step < 0)
+                throw new ArgumentOutOfRangeException(nameof(step), "Step must be non-negative.");
 
             if (fields == null)
-                throw new ArgumentNullException(nameof(fields));
+                throw new ArgumentNullException(nameof(fields), "Fields cannot be null.");
 
             UniqueCode = uniqueCode;
             OrderId = orderId;
             Step = step;
             IsFinal = isFinal;
-            Fields = fields.ToArray();
+            Fields = fields.ToList().AsReadOnly();
         }
     }
 }

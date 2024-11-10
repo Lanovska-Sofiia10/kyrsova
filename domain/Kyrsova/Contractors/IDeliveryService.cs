@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Kyrsova.Contractors
+﻿namespace Kyrsova.Contractors
 {
     public interface IDeliveryService
     {
@@ -14,8 +8,8 @@ namespace Kyrsova.Contractors
 
         Form CreateForm(Order order);
 
-        Form MoveNext(int orderId, int step, IReadOnlyDictionary<string, string> values);
+        Form MoveNextForm(int orderId, int step, IReadOnlyDictionary<string, string> values);
 
-
+        OrderDelivery GetDelivery(Form form);
     }
 }

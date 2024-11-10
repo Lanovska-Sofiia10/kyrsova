@@ -106,6 +106,79 @@ namespace Kyrsova.Contractors
         public string UniqueCode => "DeliveryService";
         public string Title => "Доставка";
 
+        public string GetCityNameFromForm(IDictionary<string, string> formFields)
+        {
+            if (formFields.ContainsKey("city"))
+            {
+                var cityId = formFields["city"];
+                if (cities.ContainsKey(cityId))
+                {
+                    return cities[cityId];
+                }
+                else
+                {
+                    throw new ArgumentException("Невідомий cityId");
+                }
+            }
+            else
+            {
+                throw new ArgumentException("Поле 'city' не знайдено у формі");
+            }
+        }
+
+        public OrderDelivery GetDelivery(Form form)
+        {
+            if (form.UniqueCode != UniqueCode || !form.IsFinal)
+               throw new InvalidOperationException("Invalid form.");
+            
+            var cityId = form.Fields
+                             .Single(Field => Field.Name == "city")
+                             .Value;
+            var cityName = cities[cityId];
+
+            var postamateId = form.Fields
+                             .Single(Field => Field.Name == "city")
+                             .Value;
+
+            var novaPoshtaBrancheId = form.Fields
+                                           .SingleOrDefault(field => field.Name == "novaPoshtaBranch")?.Value;
+            var ukrPoshtaBrancheId = form.Fields
+                                          .SingleOrDefault(field => field.Name == "ukrPoshtaBranch")?.Value;
+
+            var postamateName = postamateId != null && postamates[cityId].ContainsKey(postamateId)
+                                ? postamates[cityId][postamateId]
+                                : null;
+
+            var novaPoshtaBrancheName = novaPoshtaBrancheId != null && novaPoshtaBranches[cityId].ContainsKey(novaPoshtaBrancheId)
+                                        ? novaPoshtaBranches[cityId][novaPoshtaBrancheId]
+                                        : null;
+
+            var ukrPoshtaBrancheName = ukrPoshtaBrancheId != null && ukrPoshtaBranches[cityId].ContainsKey(ukrPoshtaBrancheId)
+                                       ? ukrPoshtaBranches[cityId][ukrPoshtaBrancheId]
+                                       : null;
+
+            var parameters = new Dictionary<string, string>
+     {
+        { nameof(cityId), cityId },
+        { nameof(cityName), cityName },
+        { nameof(postamateId), postamateId },
+        { nameof(postamateName), postamateName },
+        { nameof(novaPoshtaBrancheId), novaPoshtaBrancheId },
+        { nameof(novaPoshtaBrancheName), novaPoshtaBrancheName },
+        { nameof(ukrPoshtaBrancheId), ukrPoshtaBrancheId },
+        { nameof(ukrPoshtaBrancheName), ukrPoshtaBrancheName },
+     };
+
+            var description = $"Місто: {cityName}\n" +
+                              $"Поштомат: {postamateName}\n" +
+                              $"Відділення Нової Пошти: {novaPoshtaBrancheName}\n" +
+                              $"Відділення Укрпошти: {ukrPoshtaBrancheName}\n";
+
+            return new OrderDelivery(UniqueCode, description, 150m, parameters);
+        }
+
+
+
         public Form CreateForm(Order order)
         {
             if (order == null)
@@ -113,15 +186,19 @@ namespace Kyrsova.Contractors
 
             return new Form(UniqueCode, order.Id, 1, false, new[]
             {
-                new SelectionField("Тип доставки", "deliveryType", "1", deliveryTypes),
-                new SelectionField("Місто", "city", "1", cities),
+               new SelectionField("Тип доставки", "deliveryType", "1", deliveryTypes),
+               new SelectionField("Місто", "city", "1", cities) // Тут додається поле "city"
             });
         }
 
-        public Form MoveNext(int orderId, int step, IReadOnlyDictionary<string, string> values)
+
+        public Form MoveNextForm(int orderId, int step, IReadOnlyDictionary<string, string> values)
         {
             if (step == 1)
             {
+                if (!values.ContainsKey("deliveryType") || !values.ContainsKey("city"))
+                    throw new InvalidOperationException("Required fields 'deliveryType' or 'city' not found in values.");
+
                 string deliveryType = values["deliveryType"];
                 string city = values["city"];
 
@@ -135,18 +212,21 @@ namespace Kyrsova.Contractors
 
                 return new Form(UniqueCode, orderId, 2, false, new Field[]
                 {
-                    new HiddenField("Тип доставки", "deliveryType", deliveryType),
-                    new HiddenField("Місто", "city", city),
-                    new SelectionField("Вибір відділення", "branch", "1", options)
+            new HiddenField("Тип доставки", "deliveryType", deliveryType),
+            new HiddenField("Місто", "city", city),
+            new SelectionField("Вибір відділення", "branch", "1", options)
                 });
             }
-
             if (step == 2)
             {
-                return new Form(UniqueCode, orderId, 0, true, Array.Empty<Field>());
+                return new Form(UniqueCode, orderId, 0, true, new Field[]
+                {
+            new HiddenField("Місто", "city", values.ContainsKey("city") ? values["city"] : "")
+                });
             }
 
             throw new InvalidOperationException("Неправильний крок.");
         }
+
     }
 }
