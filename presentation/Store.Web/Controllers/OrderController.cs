@@ -38,7 +38,7 @@ namespace Store.Web.Controllers
             if (!HttpContext.Session.TryGetCart(out Cart cart) || cart == null)
             {
                 var order = orderRepository.Create();
-                cart = new Cart(order.Id);
+                cart = new Cart(order.Id, order.TotalCount, order.TotalPrice);
                 HttpContext.Session.Set("Cart", cart);
                 return View(Map(order));
             }
@@ -116,7 +116,7 @@ namespace Store.Web.Controllers
             else
             {
                 order = orderRepository.Create();
-                cart = new Cart(order.Id);
+                cart = new Cart(order.Id, 0, 0m);
                 HttpContext.Session.Set("Cart", cart);
             }
 
@@ -126,8 +126,7 @@ namespace Store.Web.Controllers
         private void SaveOrderAndCart(Order order, Cart cart)
         {
             orderRepository.Update(order);
-            cart.TotalCount = order.TotalCount;
-            cart.TotalPrice = order.TotalPrice;
+            cart = new Cart(order.Id, order.TotalCount, order.TotalPrice);
             HttpContext.Session.Set("Cart", cart);
         }
 

@@ -6,23 +6,18 @@ namespace Store.Web.Controllers
 {
     public class BookController : Controller
     {
-        private readonly IBookRepository bookRepository;
+        private readonly BookService bookService;
 
-        public BookController(IBookRepository bookRepository)
+        public BookController(BookService bookService)
         {
-            this.bookRepository = bookRepository;
+            this.bookService = bookService;
         }
 
         public IActionResult Index(int id)
         {
-            var book = bookRepository.GetById(id);
+            var model = bookService.GetById(id);
 
-            if (book == null)
-            {
-                return NotFound();
-            }
-
-            return View(book);
+            return View(model);
         }
 
         
