@@ -1,7 +1,6 @@
-﻿using Store.Web.App;
-using System.Reflection;
+﻿using Kyrsova;
 
-namespace Kyrsova
+namespace Store.Web.App
 {
     public class BookService
     {

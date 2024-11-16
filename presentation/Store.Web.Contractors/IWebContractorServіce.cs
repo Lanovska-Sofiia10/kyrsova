@@ -4,8 +4,6 @@
     {
         string UniqueCode { get; }
 
-        string GetUri { get; }
-
-
+        Uri StartSession(IReadOnlyDictionary<string, object> parameters, Uri returnUri);
     }
 }
