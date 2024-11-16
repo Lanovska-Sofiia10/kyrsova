@@ -1,9 +1,8 @@
-﻿using Store.Web.Models;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using System.IO;
 using System.Text;
 
-namespace Store.Web
+namespace Store.Web.App
 {
     public static class SessionExtensions
     {
@@ -14,22 +13,24 @@ namespace Store.Web
             session.Remove(key);
         }
 
-        public static void Set(this ISession session, string v, Cart value)
+        public static void Set(this ISession session, string key, Cart value)
         {
             if (value == null)
                 return;
 
             using (var stream = new MemoryStream())
-            using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
             {
-                writer.Write(value.OrderId);
-                writer.Write(value.TotalCount);
-                writer.Write(value.TotalPrice);
-
+                using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
+                {
+                    writer.Write(value.OrderId);
+                    writer.Write(value.TotalCount);
+                    writer.Write(value.TotalPrice);
+                }
 
                 session.Set(key, stream.ToArray());
             }
         }
+
 
         public static bool TryGetCart(this ISession session, out Cart? value)
         {
@@ -42,12 +43,7 @@ namespace Store.Web
                     var totalCount = reader.ReadInt32();
                     var totalPrice = reader.ReadDecimal();
 
-                    value = new Cart(orderId)
-                    {
-                        TotalCount = totalCount,
-                        TotalPrice = totalPrice,
-                    };
-                    
+                    value = new Cart(orderId, totalCount, totalPrice);
                     return true;
                 }
             }

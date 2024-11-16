@@ -1,4 +1,4 @@
-﻿@model ConfirmationModel
+﻿@model OrderModel
 
 @{
     ViewData["Title"] = "Підтвердження мобільного";
@@ -6,28 +6,32 @@
 
 <h1>Підтвердження мобільного</h1>
 
-<form action="@Url.Action("Confirmate")" method="post">
-    <input type="hidden" name="id" value="@Model.OrderId" />
+<p>
+    Введіть <em>код підтвердження</em> з SMS.
+</p>
+
+<form action="@Url.Action("Confirmate", "Order")" method="post">
     <input type="hidden" name="cellPhone" value="@Model.CellPhone" />
     <div class="form-group">
-        <label for="code">Код підтверджений</label>
-        <input type="text" class="form-control" name="code" placeholder="0000" />
-        @if (Model.Errors.ContainsKey("code"))
+        <label for="confirmationCode">Код підтвердження</label>
+        <input type="text" class="form-control" name="confirmationCode" placeholder="0000" />
+        @if (Model.Errors.ContainsKey("confirmationCode"))
         {
-            <small class="form-text text-danger">@Model.Errors["code"]</small>
+            <small class="form-text text-danger">@Model.Errors["confirmationCode"]</small>
         }
     </div>
     <button type="submit" class="btn btn-success">Перевірити</button>
 </form>
 
-<form action="@Url.Action("SendConfirmationCode")" method="post">
-    <input type="hidden" name="id" value="@Model.OrderId" />
+<p>
+    Якщо на ваш номер SMS не надійшло протягом хвилини, перевірте правильність введеного номера або повторіть відправку коду.
+</p>
 
+<form action="@Url.Action("SendConfirmation", "Order")" method="post">
     <div class="form-group">
         <label for="cellPhone">Мобільний телефон</label>
         <input type="text" class="form-control" name="cellPhone" value="@Model.CellPhone" />
-
     </div>
 
-    <button type="submit" class="btn btn-success">Повторити код</button>
+    <button type="submit" class="btn btn-warning">Повторити код</button>
 </form>

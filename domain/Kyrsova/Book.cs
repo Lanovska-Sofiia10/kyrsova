@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace Kyrsova
 {
@@ -28,7 +27,7 @@ namespace Kyrsova
             Price = price;
         }
 
-		internal static bool IsIsbn(string s)
+		public static bool IsIsbn(string s)
 		{
 			if (s == null)
 				return false;

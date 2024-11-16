@@ -1,9 +1,11 @@
 ﻿@{
-    ViewData["Title"] = "Замовлення оплачено";
+    Layout = "_Layout";
+    ViewData["Title"] = "Оплата успішна";
 }
 
-<h1>Замовлення оплачено</h1>
+<h1>Оплата успішна!</h1>
+<p>@ViewBag.Message</p>
 
 <p>
-    <a href="@Url.Action("Finish", "Order")">Повернутися до магазину</a>.
+    <a href="@Url.Action("Index", "Home", new { area = "" })" class="btn btn-primary">Повернутися до магазину</a>
 </p>

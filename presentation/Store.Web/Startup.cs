@@ -1,15 +1,11 @@
-﻿using System;
-using Kyrsova;
+﻿using Kyrsova;
 using Kyrsova.Contractors;
 using Kyrsova.Messages;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.FileSystemGlobbing.Internal.Patterns;
 using Store.LiqPay;
 using Store.Memory;
+using Store.Web.App;
 using Store.Web.Contractors;
 
 namespace Store.Web
@@ -26,7 +22,7 @@ namespace Store.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-
+            services.AddHttpContextAccessor();
             services.AddDistributedMemoryCache();
             services.AddSession(options =>
             {
@@ -40,10 +36,11 @@ namespace Store.Web
             services.AddSingleton<IOrderRepository, OrderRepository>();
             services.AddSingleton<INotificationService, NotificationService>();
             services.AddSingleton<IDeliveryService, DeliveryService>();
-            services.TryAddSingleton<IPaymentService, CashPlaymentService>();
+            services.AddSingleton<IPaymentService, CashPlaymentService>();
             services.AddSingleton<IPaymentService, LiqPayPaymentService>();
             services.AddSingleton<IWebContractorService, LiqPayPaymentService>();
             services.AddSingleton<BookService>();
+            services.AddSingleton<OrderService>();
             services.AddControllersWithViews();
         }
 
@@ -71,14 +68,12 @@ namespace Store.Web
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
+                    name: "areas",
+                    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
+                endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-                endpoints.MapAreaControllerRoute(
-                    name: "liqpay",
-                    areaName: "LiqPay",
-                    pattern: "LiqPay/{controller=Home}/{action=Index}/{id?}"
-                    );
             });
 
         }
