@@ -19,16 +19,6 @@
         <input type="password" id="cvv" name="cvv" class="form-control" maxlength="3" placeholder="XXX"
                value="@ViewBag.CVV" required />
     </div>
-
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <p class="text-danger">
-            @string.Join("<br />", ViewData.ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage))
-        </p>
-    }
-
     <button type="submit" class="btn btn-success">Оплатити</button>
 </form>
 

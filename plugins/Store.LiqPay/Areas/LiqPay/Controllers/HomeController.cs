@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Store.Web.App;
 
 namespace Store.LiqPay.Areas.LiqPay.Controllers
 {
@@ -13,11 +14,10 @@ namespace Store.LiqPay.Areas.LiqPay.Controllers
         [HttpPost]
         public IActionResult ProcessPayment(string cardNumber, string expiryDate, string cvv)
         {
-            // Перевірка вхідних даних
             if (string.IsNullOrWhiteSpace(cardNumber) || cardNumber.Replace(" ", "").Length != 16)
             {
                 ModelState.AddModelError(string.Empty, "Номер картки має складатися з 16 цифр.");
-                ViewBag.CardNumber = cardNumber; // Повертаємо номер картки
+                ViewBag.CardNumber = cardNumber;
                 ViewBag.ExpiryDate = expiryDate;
                 ViewBag.CVV = cvv;
                 return View("Index");
@@ -27,7 +27,7 @@ namespace Store.LiqPay.Areas.LiqPay.Controllers
             {
                 ModelState.AddModelError(string.Empty, "Термін дії має бути у форматі MM/YY.");
                 ViewBag.CardNumber = cardNumber;
-                ViewBag.ExpiryDate = expiryDate; // Повертаємо термін дії
+                ViewBag.ExpiryDate = expiryDate;
                 ViewBag.CVV = cvv;
                 return View("Index");
             }
@@ -37,11 +37,12 @@ namespace Store.LiqPay.Areas.LiqPay.Controllers
                 ModelState.AddModelError(string.Empty, "CVV має складатися з 3 цифр.");
                 ViewBag.CardNumber = cardNumber;
                 ViewBag.ExpiryDate = expiryDate;
-                ViewBag.CVV = cvv; // Повертаємо CVV
+                ViewBag.CVV = cvv;
                 return View("Index");
             }
 
-            // Якщо дані вірні
+            HttpContext.Session.RemoveCart();
+
             ViewBag.Message = $"Платіж успішно оброблено для картки {cardNumber.Substring(0, 4)} **** **** ****";
             return View("Callback");
         }
