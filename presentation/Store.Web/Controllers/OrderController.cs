@@ -46,8 +46,22 @@ namespace Store.Web.Controllers
         [HttpPost]
         public IActionResult UpdateItem(int bookId, int count)
         {
-            var model = orderService.UpdateBook(bookId, count);
-            return View("Index", model);
+            if (count <= 0)
+            {
+                ModelState.AddModelError(nameof(count), "Кількість повинна бути більше нуля.");
+                return RedirectToAction("Index");
+            }
+
+            try
+            {
+                orderService.UpdateBook(bookId, count);
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("Index");
+            }
         }
 
         [HttpPost]
@@ -174,6 +188,11 @@ namespace Store.Web.Controllers
             var model = orderService.SetPayment(payment);
 
             return View("Finish", model);
+        }
+
+        public IActionResult Finish()
+        {
+            return View();
         }
     }
 }

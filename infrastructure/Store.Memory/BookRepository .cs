@@ -146,6 +146,5 @@ namespace Store.Memory
 		{
             return books.Single(book => book.Id == id);
 		}
-
 	}
 }

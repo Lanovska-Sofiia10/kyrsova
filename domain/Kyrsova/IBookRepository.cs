@@ -14,5 +14,6 @@ namespace Kyrsova
         Book[] GetAllByTitleOrAuthor(string titleOrAuthor);
 
         Book GetById(int id);
+
     }
 }

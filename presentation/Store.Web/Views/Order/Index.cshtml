@@ -29,21 +29,22 @@
                     <td class="text-right">
                         <form action="@Url.Action("UpdateItem", "Order")" method="post" style="display:inline;">
                             <input type="hidden" name="bookId" value="@Model.Items[i].BookId" />
-                            <input type="hidden" name="change" value="-1" />
-                            <button class="btn btn-sm btn-secondary" type="submit">-</button>
+                            <input type="hidden" name="count" value="@(Model.Items[i].Count - 1)" />
+                            <button class="btn btn-sm btn-outline-secondary" type="submit" @(Model.Items[i].Count <= 1 ? "disabled" : "")>-</button>
                         </form>
-                        @Model.Items[i]?.Count
+
+                        <span>@Model.Items[i].Count</span>
                         <form action="@Url.Action("UpdateItem", "Order")" method="post" style="display:inline;">
                             <input type="hidden" name="bookId" value="@Model.Items[i].BookId" />
-                            <input type="hidden" name="change" value="1" />
-                            <button class="btn btn-sm btn-secondary" type="submit">+</button>
+                            <input type="hidden" name="count" value="@(Model.Items[i].Count + 1)" />
+                            <button class="btn btn-sm btn-outline-secondary" type="submit">+</button>
                         </form>
                     </td>
-                    <td class="text-right">@Model.Items[i]?.Price</td>
+                    <td class="text-right">@((Model.Items[i].Price * Model.Items[i].Count).ToString("C"))</td>
                     <td class="text-center">
                         <form action="@Url.Action("RemoveItem", "Order")" method="post">
                             <input type="hidden" name="bookId" value="@Model.Items[i].BookId" />
-                            <button class="btn btn-danger" type="submit">Видалити</button>
+                            <button class="btn btn-danger btn-sm" type="submit">Видалити</button>
                         </form>
                     </td>
                 </tr>
@@ -51,16 +52,26 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="3" class="text-right">Разом</td>
-                <td class="text-right">@Model.TotalCount</td>
-                <td class="text-right">@Model.TotalPrice</td>
+                <td colspan="4" class="text-right">Разом</td>
+                <td class="text-right">@Model.TotalPrice.ToString("C")</td>
             </tr>
         </tfoot>
     </table>
 
+    @* Відображення помилок валідації *@
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <p>@error.ErrorMessage</p>
+            }
+        </div>
+    }
+
     <p>
         Для оформлення замовлення необхідно підтвердити номер мобільного.
-        Введіть номер та натисніть <em>Надіслати код</em>. На ваш номер буде надіслано код підтвердження
+        Введіть номер та натисніть <em>Надіслати код</em>. На ваш номер буде надіслано код підтвердження.
     </p>
 
     <form action="@Url.Action(nameof(OrderController.SendConfirmation))" method="post">
@@ -68,7 +79,7 @@
             <label for="cellPhone">Мобільний телефон</label>
             <input type="text" class="form-control" name="cellPhone" placeholder="+380987654321" value="+380987654321" />
 
-            @if (Model.Errors.ContainsKey("cellPhone"))
+            @if (Model.Errors?.ContainsKey("cellPhone") == true)
             {
                 <small class="form-text text-danger">@Model.Errors["cellPhone"]</small>
             }
@@ -79,6 +90,6 @@
 }
 else
 {
-    <p>Кошик пустий</p>
+    <p>Кошик пустий. <a href="@Url.Action("Index", "Catalog")">Перейти до каталогу</a></p>
 }
 

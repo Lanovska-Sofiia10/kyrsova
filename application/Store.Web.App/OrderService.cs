@@ -114,12 +114,28 @@ namespace Store.Web.App
 
         public OrderModel UpdateBook(int bookId, int count)
         {
+            if (count <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count), "Count must be greater than zero.");
+            }
+
             var order = GetOrder();
-            order.Items.Get(bookId).Count = count;
+
+            // Перевірка, чи існує елемент з bookId
+            if (!order.Items.ContainsKey(bookId))
+            {
+                throw new KeyNotFoundException($"Item with BookId {bookId} not found in the cart.");
+            }
+
+            var item = order.Items.Get(bookId);
+            item.Count = count; // Оновлення кількості
             orderRepository.Update(order);
             UpdateSession(order);
+
             return Map(order);
         }
+
+
 
         public OrderModel RemoveBook(int bookId)
         {

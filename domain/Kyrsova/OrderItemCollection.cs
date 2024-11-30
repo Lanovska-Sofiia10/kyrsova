@@ -65,5 +65,9 @@ namespace Kyrsova
             items.Remove(Get(bookId));
         }
 
+        public bool ContainsKey(int bookId)
+        {
+            return items.Any(item => item.BookId == bookId);
+        }
     }
 }

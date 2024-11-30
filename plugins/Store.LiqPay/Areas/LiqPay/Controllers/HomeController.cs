@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Store.Web.App;
+using System.Reflection;
 
 namespace Store.LiqPay.Areas.LiqPay.Controllers
 {
@@ -50,7 +51,7 @@ namespace Store.LiqPay.Areas.LiqPay.Controllers
 
         public IActionResult Callback()
         {
-            return View();
+            return View("Finish");
         }
     }
 }

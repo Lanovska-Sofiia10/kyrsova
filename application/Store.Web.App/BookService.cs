@@ -39,5 +39,6 @@ namespace Store.Web.App
                 Price = arg.Price,
             };
         }
+
     }
 }
