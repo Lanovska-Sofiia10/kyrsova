@@ -17,11 +17,17 @@ namespace Store.Web.Controllers
         public IActionResult Index(int id)
         {
             var model = bookService.GetById(id);
-
             return View(model);
         }
 
-        
+        public IActionResult Catalog()
+        {
+            var books = bookService.GetAllBooks();
+            Console.WriteLine($"Кількість книг у моделі: {books.Count}");
+            return View("~/Views/Order/Catalog.cshtml", books); // Передача моделі у View
+        }
+
     }
+
 }
 

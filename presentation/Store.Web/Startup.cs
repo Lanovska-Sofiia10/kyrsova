@@ -22,16 +22,18 @@ namespace Store.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-            services.AddHttpContextAccessor();
-            services.AddDistributedMemoryCache();
+
+            services.AddHttpContextAccessor(); // Додаємо доступ до контексту HTTP
+            services.AddDistributedMemoryCache(); // Додаємо кешування для сесій
+
             services.AddSession(options =>
             {
-                options.IdleTimeout = TimeSpan.FromMinutes(20);
-                options.Cookie.HttpOnly = true;
-                options.Cookie.IsEssential = true;
-
+                options.IdleTimeout = TimeSpan.FromMinutes(20); // Тривалість сесії 20 хвилин
+                options.Cookie.HttpOnly = true; // Обмеження доступу до cookie тільки через HTTP
+                options.Cookie.IsEssential = true; // Зробити cookie важливим для роботи сайту
             });
 
+            // Реєстрація залежностей
             services.AddSingleton<IBookRepository, BookRepository>();
             services.AddSingleton<IOrderRepository, OrderRepository>();
             services.AddSingleton<INotificationService, NotificationService>();
@@ -41,7 +43,6 @@ namespace Store.Web
             services.AddSingleton<IWebContractorService, LiqPayPaymentService>();
             services.AddSingleton<BookService>();
             services.AddSingleton<OrderService>();
-            services.AddControllersWithViews();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -61,6 +62,7 @@ namespace Store.Web
 
             app.UseRouting();
 
+            // Додано перед авторизацією, щоб забезпечити роботу сесій
             app.UseSession();
 
             app.UseAuthorization();

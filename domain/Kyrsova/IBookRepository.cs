@@ -15,5 +15,7 @@ namespace Kyrsova
 
         Book GetById(int id);
 
+        Book[] GetAll();
+
     }
 }

@@ -1,0 +1,27 @@
+﻿@model IReadOnlyCollection<BookModel>
+
+@{
+    ViewData["Title"] = "Каталог книг";
+}
+
+<h1>Каталог книг</h1>
+<p>Кількість книг: @Model?.Count ?? 0</p>
+
+@if (Model != null && Model.Any())
+{
+    <ul>
+        @foreach (var book in Model)
+        {
+            <li>
+                <a href="@Url.Action("Index", "Book", new { id = book.Id })">
+                    @book.Title - @book.Author
+                </a>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>Книги відсутні.</p>
+}
+

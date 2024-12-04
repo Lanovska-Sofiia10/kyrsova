@@ -40,5 +40,27 @@ namespace Store.Web.App
             };
         }
 
+        public IReadOnlyCollection<BookModel> GetAllBooks()
+        {
+            var books = bookRepository.GetAll();
+            if (books == null || books.Length == 0)
+            {
+                Console.WriteLine("Репозиторій повернув порожній список або null!");
+            }
+
+            var bookModels = books.Select(book => new BookModel
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Author = book.Author,
+                Price = book.Price,
+                Description = book.Description
+            }).ToList();
+
+            Console.WriteLine($"Кількість знайдених книг: {bookModels.Count}");
+            return bookModels;
+        }
+
+
     }
 }

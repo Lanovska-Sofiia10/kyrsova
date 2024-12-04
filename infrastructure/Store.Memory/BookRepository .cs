@@ -110,6 +110,10 @@ namespace Store.Memory
 
         };
 
+        public Book[] GetAll()
+        {
+            return books.ToArray();
+        }
         public Book[] GetAllByIds(IEnumerable<int> bookIds)
         {
             var foundBooks = from book in books
@@ -146,5 +150,6 @@ namespace Store.Memory
 		{
             return books.Single(book => book.Id == id);
 		}
-	}
+
+    }
 }
